@@ -16,8 +16,10 @@ The project consists of 8 parts:
 8. Perform final validation error assessment
 
 #### 1: Acquiring the validation data and assigning labels based on the description.  ####
-A validation dataset of fashion items was pre-defined in product_data.json. The file was read and stored as a dictionary 
-using the `json`' package. Each photo was downloaded using the `urllib` package. 
+I choose to use the given dataset as a validation dataset for two reasons: 1) the final test of the model is based on well
+the model performs on the provided set and two, the set has imbalanced classes and therefore a model would have a difficult
+time training to identify the minority classes. Thus, I used fashion items pre-defined in product_data.json as a validation set only.
+The file was read and stored as a dictionary using the `json`' package. Each photo was downloaded using the `urllib` package. 
 
 ```
 urllib.request.urlretrieve(item['images_url'], photo_filename)
@@ -35,7 +37,7 @@ The set of synonyms were:
 | frock  | tunic      |       | tutu   |          | sandal    | duffel   | ring     | coverup  | panties   | short  |
 | muumuu | shirt      |       | hoop   |          | clog      | pannier  | bracelet | bodysuit | lingerie  |        |
 | drape  | tank       |       | midi   |          | heel      | backpack | jewel    | robe     | under     |        |
-| smock  | sweatshirt |       | sarong |          | pump      | clutch   | ear      | bikini   |           |        |
+| smock  | sweatshirt |       | sarong |          | pump      | clutch   | earring  | bikini   |           |        |
 |        | turtleneck |       | kilt   |          | slipper   | handbag  | brooch   |          |           |        |
 |        | camise     |       | dirndl |          | slip      | tote     | chain    |          |           |        |
 |        | camisole   |       |        |          | flip-flop | satchel  | choker   |          |           |        |
@@ -50,6 +52,7 @@ The set of synonyms were:
 |        |            |       |        |          | mule      |          |          |          |           |        |
 |        |            |       |        |          | trainer   |          |          |          |           |        |
 |        |            |       |        |          | cleats    |          |          |          |           |        |
+|        |            |       |        |          | footwear  |          |          |          |           |        |
 
 
 I chose to also implement a few labeling rules to circumvent issues. One major labelling problem was with the word __top__. Too
@@ -75,6 +78,8 @@ for key in category_dict.keys():
 After determining the label, I saved file as shown above (with urllib) in a folder designated by the label.
         
 A couple of odds and ends to point out:
+* In general, there are weaknesses in my approach, e.g., when more than one keyword is present, the algorithm selects the first
+one it checks. This is not something I am choosing to spend time on. Rather I am manually fixing the mis-labelled items.
 * Since _pants_ are not a unique category (rather, jeans is used), I assign pants to the other category as __jeans__ do not necessarily
 cover pants.
 * some descriptions were just too vague and manual labelling was required. For example, the description:
@@ -82,24 +87,25 @@ _Shop On Top at Urban Outfitters. We have all the latest styles and fashion tren
 * There were also images in this set that were not fashion items, they images were assigned to 
 the other category.
 * Some images could not be downloaded and thus were left out of the validation set and are designated by the nan category below.
+* A summary report of the filename, assigned label, whether the download was complete, the description and url were saved in a file called
+val_database.csv (which is in the repository).
 
-In summary, there were X items with
+In summary, out of 1000 records, there were X items with
 
 | Category  | #   |
 |-----------|-----|
-| bag       | 28  |
-| dress     | 95  |
-| intimates | 14  |
+| bag       | 31  |
+| dress     | 73  |
+| intimates | 16  |
 | jean      | 27  |
-| jewelry   | 122 |
+| jewelry   | 49  |
 | nan       | 213 |
-| other     | 142 |
-| romper    | 3   |
-| shoe      | 31  |
-| skirt     | 22  |
-| swimwear  | 27  |
-| top       | 276 |
-
+| other     | 166 |
+| romper    | 5   |
+| shoe      | 44  |
+| skirt     | 11  |
+| swimwear  | 82  |
+| top       | 283 |
 
 #### 2: Acquiring the validation data and assigning labels based on the description.  ####
 To train the model, I needed labeled training and test data. I decided that the product images from the validation set should not
