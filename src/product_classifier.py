@@ -11,23 +11,23 @@ import shutil
 import spacy
 nlp = spacy.load('en', disable=['parser', 'ner'])
 
-# from keras.preprocessing.image import ImageDataGenerator
-# from keras import layers
-# from keras import models
-# from keras.models import Sequential
-# from keras.layers.normalization import BatchNormalization
-# from keras.layers.convolutional import Conv2D
-# from keras.layers.convolutional import MaxPooling2D
-# from keras.layers.core import Activation
-# from keras.layers.core import Flatten
-# from keras.layers.core import Dropout
-# from keras.layers.core import Dense
-# from keras import backend as K
+from keras.preprocessing.image import ImageDataGenerator
+from keras import layers
+from keras import models
+from keras.models import Sequential
+from keras.layers.normalization import BatchNormalization
+from keras.layers.convolutional import Conv2D
+from keras.layers.convolutional import MaxPooling2D
+from keras.layers.core import Activation
+from keras.layers.core import Flatten
+from keras.layers.core import Dropout
+from keras.layers.core import Dense
+from keras import backend as K
 
 def read_categories():
     '''
     Read category table. First column are labels, remainder are synonyms
-    :return:
+    :return: category_dict
     '''
     # Read in categories. First column is desired labels, remainder are synonyms
     categories_raw = pd.read_csv('../data/product_categories.txt', '\t', header = None)
@@ -39,6 +39,10 @@ def read_categories():
     return category_dict
 
 def acquire_validation_data():
+    '''
+    Download and label the validation dataset from the product_data.json file supplied with the project
+    :return: val_database pandas DataFrame
+    '''
 
     basedir = os.path.dirname(os.path.abspath(__file__))[:-3]
 
@@ -61,6 +65,8 @@ def acquire_validation_data():
 
     # Iterate over each image in validation set, identify the appropriate label and save image in corresponding folder
     # Aim is to have unknowns fall into the Other category, which will be hand labeled
+
+    cannot_download = 0
     for i, item in enumerate(catalogue):
         val_database.loc[i, 'title'] = 'p' + str(i) + '.jpg'
         val_database.loc[i, 'label'] = get_label_validation_data(item['description'], category_dict)
@@ -78,31 +84,51 @@ def acquire_validation_data():
                 urllib.request.urlretrieve(item['images_url'], photo_filename)
                 val_database.loc[i, 'downloaded'] = True
             except:
-                print('Cannot download image')
+                cannot_download += 1
+                print('Cannot download image:' + val_database.loc[i, 'title'] + ', total={}'.format(cannot_download))
                 val_database.loc[i, 'downloaded'] = False
+                val_database.loc[i, 'label'] = 'nan'
         else:
             val_database.loc[i, 'downloaded'] = True
 
-    val_database.to_csv('../data/val_database.csv')
+    val_database.to_csv('../val_database.csv')
+
+    # Report totals
+    categories_dummy = pd.get_dummies(val_database['label'])
+    for col  in categories_dummy.columns:
+        print(col, categories_dummy[col].sum())
 
     return val_database
 
 def get_label_validation_data(description, category_dict):
-    # Set up word lemmatizer to make searching in the descriptions more productive
+    ''' Identify label from the image description. Used for unlabeled validation dataset. Use spacy natural language processor.
+    :param description: item description as a string
+    :param category_dict: dict of labels and keywords
+    :return: identified label
+    '''
 
-        description = nlp(description)
-        sentence = " ".join([token.lemma_ for token in description])
+    description = nlp(description)
+    sentence = " ".join([token.lemma_ for token in description])
 
-        # Search for category in description and assign, otherwise set to other
-        for key in category_dict.keys():
-            if key in sentence:
-                return key
+    # Search for category in description and assign, otherwise set to other
+    for key in category_dict.keys():
+
+        if key == 'jewelry':
+            hold = 1
+
+        if key in sentence:
+
+            # Forced Labeling rules for superceding
+            if key == 'top' and 'bikini' in sentence:
+                return 'swimwear'
             else:
-                for syn in category_dict[key]:
-                    if syn in sentence:
-                        return key
+                return key
+        else:
+            for syn in category_dict[key]:
+                if syn in sentence:
+                    return key
 
-        return 'other'
+    return 'other'
 
 def acquire_training_data():
     '''Scrape training data from the web'''
@@ -152,26 +178,43 @@ def acquire_training_data():
 if __name__ == '__main__':
 
     # Acquiring data, comment out after use
-    catalogue, successful_download = acquire_validation_data()
+    if os.path.exists('../val_database.csv'):
+        val_database = pd.read_csv('../val_database.csv')
+    else:
+        val_database = acquire_validation_data()
+
+    # Acquire the training data # Commented out after run
     # train_dir, test_dir = acquire_training_data()
 
     # process the image data
-    # train_datagen = ImageDataGenerator(rescale=1/255)
-    # test_datagen =  ImageDataGenerator(rescale=1/255)
-    #
-    # train_generator = train_datagen.flow_from_directory(
-    #         train_dir,
-    #         target_size=(200, 200),
-    #         batch_size=20,
-    #         class_mode=None
-    #         )
-    #
-    # test_generator = train_datagen.flow_from_directory(
-    #         train_dir,
-    #         target_size=(150, 150),
-    #         batch_size=20,
-    #         class_mode=None
-    #         )
+    train_datagen = ImageDataGenerator(rescale=1/255)
+    test_datagen = ImageDataGenerator(rescale=1/255)
+    val_datagen = ImageDataGenerator(rescale=1/255)
+
+    train_dir = '../data/train_data/'
+    test_dir = '../data/test_data/'
+    val_dir = '../data/val_data/'
+
+    train_generator = train_datagen.flow_from_directory(
+            train_dir,
+            target_size=(200, 200),
+            batch_size=20,
+            class_mode=None
+            )
+
+    test_generator = train_datagen.flow_from_directory(
+            test_dir,
+            target_size=(200, 200),
+            batch_size=20,
+            class_mode=None
+            )
+
+    val_generator = train_datagen.flow_from_directory(
+            val_dir,
+            target_size=(200, 200),
+            batch_size=20,
+            class_mode=None
+            )
     #
     # # Define the CNN
     #
