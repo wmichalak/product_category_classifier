@@ -1,11 +1,11 @@
-Dress	gown	frock	muumuu	drape	smock														
-Top	top	blouse	tunic	shirt	wrap	tank	sweatshirt	crop	turtleneck	camise	camisole	polo	vest	blazer	jacket				
-Jean	pant	denim																	
-Skirt	mini	tutu	hoop	midi	sarong	kilt	dirndl												
-Romper	jumpsuit																		
-Shoe	boot	sandal	clog	heel	pump	slipper	slip	flip-flop	wedge	loafer	mary jane	oxford	stilleto	peep	platform	scarpin	mule	trainer	cleats
-Bag	purse	duffel	pannier	backpack	clutch	handbag	tote	satchel	pouch										
-Jewelry	necklace	ring	bracelet	jewel	ear	brooch	chain	choker	charm	diamond	ornament	pendant	gem						
-Swimwear	swim	coverup	bodysuit	robe	bikini														
-Intimates	bra	panties	lingerie	under															
-Others																			
+Dress	gown	frock	muumuu	drape	smock															
+Top	blouse	tunic	shirt	tank	sweatshirt	turtleneck	camise	camisole	polo	vest	blazer	jacket	sleeve							
+Jean	denim																			
+Skirt	mini	tutu	hoop	midi	sarong	kilt	dirndl													
+Romper	jumpsuit																			
+Shoe	boot	sandal	clog	heel	pump	slipper	slip	flip-flop	wedge	loafer	mary jane	oxford	stilleto	peep	platform	scarpin	mule	trainer	cleats	footwear
+Bag	purse	duffel	pannier	backpack	clutch	handbag	tote	satchel	pouch											
+Jewelry	necklace	ring	bracelet	jewel	ear	brooch	chain	choker	charm	diamond	ornament	pendant	gem	silver	gold	platinum				
+Swimwear	swim	coverup	bodysuit	robe	bikini	swimsuit														
+Intimates	bra	panties	lingerie	under																
+Other	pant	shorts	glass																	
