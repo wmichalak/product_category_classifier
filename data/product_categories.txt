@@ -5,7 +5,7 @@ Skirt	mini	tutu	hoop	midi	sarong	kilt	dirndl
 Romper	jumpsuit																			
 Shoe	boot	sandal	clog	heel	pump	slipper	slip	flip-flop	wedge	loafer	mary jane	oxford	stilleto	peep	platform	scarpin	mule	trainer	cleats	footwear
 Bag	purse	duffel	pannier	backpack	clutch	handbag	tote	satchel	pouch											
-Jewelry	necklace	ring	bracelet	jewel	ear	brooch	chain	choker	charm	diamond	ornament	pendant	gem	silver	gold	platinum				
+Jewelry	necklace	ring	bracelet	jewel	earring	brooch	chain	choker	charm	diamond	ornament	pendant	gem	silver	gold	platinum				
 Swimwear	swim	coverup	bodysuit	robe	bikini	swimsuit														
 Intimates	bra	panties	lingerie	under																
 Other	pant	shorts	glass																	
