@@ -218,59 +218,98 @@ if __name__ == '__main__':
             class_mode='categorical'
             )
 
-    # Define the CNN
-    #
-    model = models.Sequential()
-    model.add(layers.Conv2D(32, (3, 3), activation='relu',
-                            input_shape=(200, 200, 3)))
-    model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Conv2D(64, (3, 3), activation='relu'))
-    model.add(layers.MaxPooling2D((2, 2)))
-    # model.add(layers.Dropout(0.5))
-    model.add(layers.Conv2D(128, (3, 3), activation='relu'))
-    model.add(layers.MaxPooling2D((2, 2)))
-    # model.add(layers.Dropout(0.5))
-    model.add(layers.Conv2D(128, (3, 3), activation='relu'))
-    model.add(layers.MaxPooling2D((2, 2)))
-    # model.add(layers.Dropout(0.5))
-    model.add(layers.Flatten())
-    model.add(layers.Dense(512, activation='relu'))
-    model.add(layers.Dense(10, activation='softmax'))
+    if not os.path.exists('fashion_classifier_1.h5'):
+        # Define the CNN
+        #
+        model = models.Sequential()
+        model.add(layers.Conv2D(32, (3, 3), activation='relu',
+                                input_shape=(200, 200, 3)))
+        model.add(layers.MaxPooling2D((2, 2)))
+        model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+        model.add(layers.MaxPooling2D((2, 2)))
+        model.add(layers.Dropout(0.5))
+        model.add(layers.Conv2D(128, (3, 3), activation='relu'))
+        model.add(layers.MaxPooling2D((2, 2)))
+        model.add(layers.Dropout(0.5))
+        model.add(layers.Conv2D(128, (3, 3), activation='relu'))
+        model.add(layers.MaxPooling2D((2, 2)))
+        model.add(layers.Dropout(0.5))
+        model.add(layers.Flatten())
+        model.add(layers.Dense(512, activation='relu'))
+        model.add(layers.Dense(10, activation='softmax'))
 
-    model.summary()
+        model.summary()
 
-    model.compile(loss='categorical_crossentropy',
-                  optimizer=optimizers.RMSprop(lr=1e-4),
-                  metrics=['acc'])
+        model.compile(loss='categorical_crossentropy',
+                      optimizer=optimizers.RMSprop(lr=1e-4),
+                      metrics=['acc'])
 
-    history = model.fit_generator(
-          train_generator,
-          steps_per_epoch=100,
-          epochs=30,
-          validation_data=validation_generator,
-          validation_steps=50)
+        history = model.fit_generator(
+                      train_generator,
+                      steps_per_epoch=100,
+                      epochs=50,
+                      validation_data=validation_generator,
+                      validation_steps=50)
 
-    model.save('fashion_classifier_1.h5')
+        model.save('fashion_classifier_1.h5')
 
-    acc = history.history['acc']
-    val_acc = history.history['val_acc']
-    loss = history.history['loss']
-    val_loss = history.history['val_loss']
+        # Create plots
+        acc = history.history['acc']
+        val_acc = history.history['val_acc']
+        loss = history.history['loss']
+        val_loss = history.history['val_loss']
 
-    epochs = range(len(acc))
+        epochs = range(len(acc))
 
-    plt.plot(epochs, acc, 'bo', label='Training acc')
-    plt.plot(epochs, val_acc, 'b', label='Validation acc')
-    plt.title('Training and validation accuracy')
-    plt.legend()
-    plt.savefig('accuracy.png')
+        plt.plot(epochs, acc, 'bo', label='Training acc')
+        plt.plot(epochs, val_acc, 'b', label='Validation acc')
+        plt.title('Training and validation accuracy')
+        plt.legend()
+        plt.savefig('../data/accuracy.png')
 
-    plt.figure()
+        plt.figure()
 
+        plt.plot(epochs, loss, 'bo', label='Training loss')
+        plt.plot(epochs, val_loss, 'b', label='Validation loss')
+        plt.title('Training and validation loss')
+        plt.legend()
+        plt.savefig('../data/loss.png')
+        plt.show()
 
-    plt.plot(epochs, loss, 'bo', label='Training loss')
-    plt.plot(epochs, val_loss, 'b', label='Validation loss')
-    plt.title('Training and validation loss')
-    plt.legend()
-    plt.savefig('loss.png')
-    plt.show()
+    else:
+
+        model = models.load_model('fashion_classifier_1.h5')
+        history = model.fit_generator(
+              train_generator,
+              steps_per_epoch=100,
+              epochs=20,
+              validation_data=validation_generator,
+              validation_steps=50)
+
+        model.save('fashion_classifier_2.h5')
+
+        # Create plots
+        acc = history.history['acc']
+        val_acc = history.history['val_acc']
+        loss = history.history['loss']
+        val_loss = history.history['val_loss']
+
+        epochs = range(len(acc))
+
+        plt.plot(epochs, acc, 'bo', label='Training acc')
+        plt.plot(epochs, val_acc, 'b', label='Validation acc')
+        plt.title('Training and validation accuracy')
+        plt.legend()
+        plt.savefig('../data/accuracy.png')
+
+        plt.figure()
+
+        plt.plot(epochs, loss, 'bo', label='Training loss')
+        plt.plot(epochs, val_loss, 'b', label='Validation loss')
+        plt.title('Training and validation loss')
+        plt.legend()
+        plt.savefig('../data/loss.png')
+        plt.show()
+
+        test_loss, test_acc = model.evaluate_generator(test_generator, steps = 50)
+        print('test acc:', test_acc)

@@ -98,7 +98,7 @@ the other category.
 * A summary report of the filename, assigned label, whether the download was complete, the description and url were saved in a file called
 val_database.csv (which is in the repository).
 
-In summary, out of 1000 records, there were X items with
+In summary, out of 1000 records, the samples spread across the categories:
 
 | Category  | #   |
 |-----------|-----|
@@ -116,7 +116,7 @@ In summary, out of 1000 records, there were X items with
 | top       | 283 |
 
 #### 2: Acquiring the training and validation data and assigning labels based on the search criteria.  ####
-To build the model, I don't to split up this dataset because it is relatively small, and the classes are imbalanced. Instead,
+To train the model, I decided not to use the provided set because  it is relatively small, and the classes are imbalanced. Instead,
 I wanted to use another dataset. I came up with two proposals: 1) use an available database on the web or 2) download labeled 
 training data from Google images by searching for the categories and downloading those images. Given that the  available 
 fashion databases do not have the same classes (despite having lots of labeled images), I decided to go with option 2. To download
@@ -300,10 +300,10 @@ This model took about 40 minutes to train on my Macbook Pro.
 A plot of the training and validation accuracy is shown in Figure 1. A plot of the training and
 validation loss is shown in Figure 2.
 
-[[https://github.com/wmichalak/repository/product_category_classifier/data/1-accuracy.png|alt=accuracy_1]]
+[[https://github.com/wmichalak/repository/product_category_classifier/blob/master/data/1-accuracy.png|alt=accuracy_1]]
 Figure 1: Training and validation accuracy
 
-[[https://github.com/wmichalak/repository/product_category_classifier/data/1-loss.png|alt=loss_1]]
+[[https://github.com/wmichalak/repository/product_category_classifier/blob/master/data/1-loss.png|alt=loss_1]]
 Figure 2: Training and validation loss
 
 On this first attempt, I already achieve 97% accuracy on the validation set. It does not appear that I am overfitting yet and 
@@ -313,10 +313,10 @@ I don't appear to have achieved a peak in the performance, o, I continued traini
 A small, but meaningful gain in accuracy, is achieved by continuing 20 more epochs; we now have a validation accuracy of 1 and
 a training accuracy of 99.05%.
 
-[[https://github.com/wmichalak/repository/product_category_classifier/data/2-accuracy.png|alt=accuracy_1]]
+[[https://github.com/wmichalak/repository/product_category_classifier/blob/master/data/2-accuracy.png|alt=accuracy_1]]
 Figure 3: Training and validation accuracy
 
-[[https://github.com/wmichalak/repository/product_category_classifier/data/2-loss.png|alt=loss_1]]
+[[https://github.com/wmichalak/repository/product_category_classifier/blob/master/data/2-loss.png|alt=loss_1]]
 Figure 4: Training and validation loss
 
 ### 7. Assessing the performance of the model on the test set ####
