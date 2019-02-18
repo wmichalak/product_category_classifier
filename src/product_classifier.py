@@ -10,19 +10,15 @@ import pandas as pd
 import shutil
 import spacy
 nlp = spacy.load('en', disable=['parser', 'ner'])
-
+import matplotlib.pyplot as plt
 from keras.preprocessing.image import ImageDataGenerator
 from keras import layers
 from keras import models
-from keras.models import Sequential
-from keras.layers.normalization import BatchNormalization
-from keras.layers.convolutional import Conv2D
-from keras.layers.convolutional import MaxPooling2D
-from keras.layers.core import Activation
-from keras.layers.core import Flatten
-from keras.layers.core import Dropout
-from keras.layers.core import Dense
-from keras import backend as K
+from keras import optimizers
+
+# Issues with OpenMP force me to set this variable in order to run on my Mac OsX machine
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+
 
 def read_categories():
     '''
@@ -38,7 +34,7 @@ def read_categories():
 
     return category_dict
 
-def acquire_validation_data():
+def acquire_test_data():
     '''
     Download and label the validation dataset from the product_data.json file supplied with the project
     :return: val_database pandas DataFrame
@@ -57,50 +53,50 @@ def acquire_validation_data():
     category_dict = read_categories()
 
     # Retrieve test image files from web
-    if not os.path.exists('../data/val_data/images/'):
-        os.makedirs('../data/val_data/images/')
+    if not os.path.exists('../data/test_data/'):
+        os.makedirs('../data/test_data/')
 
     # Create table with photo title, identified label, downloaded, description, url
-    val_database = pd.DataFrame(columns=['title', 'label', 'downloaded', 'description', 'url'])
+    test_database = pd.DataFrame(columns=['title', 'label', 'downloaded', 'description', 'url'])
 
     # Iterate over each image in validation set, identify the appropriate label and save image in corresponding folder
     # Aim is to have unknowns fall into the Other category, which will be hand labeled
 
     cannot_download = 0
     for i, item in enumerate(catalogue):
-        val_database.loc[i, 'title'] = 'p' + str(i) + '.jpg'
-        val_database.loc[i, 'label'] = get_label_validation_data(item['description'], category_dict)
-        val_database.loc[i, 'description'] = item['description']
-        val_database.loc[i, 'url'] = item['images_url']
+        test_database.loc[i, 'title'] = 'p' + str(i) + '.jpg'
+        test_database.loc[i, 'label'] = get_labels_on_test_data(item['description'], category_dict)
+        test_database.loc[i, 'description'] = item['description']
+        test_database.loc[i, 'url'] = item['images_url']
 
-        label_dir = '../data/val_data/images/' + val_database.loc[i, 'label']
+        label_dir = '../data/test_data/' + test_database.loc[i, 'label']
         if not os.path.exists(label_dir):
             os.makedirs(label_dir)
 
         # Download the image
-        photo_filename = label_dir + '/' + val_database.loc[i, 'title']
+        photo_filename = label_dir + '/' + test_database.loc[i, 'title']
         if not os.path.exists(photo_filename):
             try:
                 urllib.request.urlretrieve(item['images_url'], photo_filename)
-                val_database.loc[i, 'downloaded'] = True
+                test_database.loc[i, 'downloaded'] = True
             except:
                 cannot_download += 1
-                print('Cannot download image:' + val_database.loc[i, 'title'] + ', total={}'.format(cannot_download))
-                val_database.loc[i, 'downloaded'] = False
-                val_database.loc[i, 'label'] = 'nan'
+                print('Cannot download image:' + test_database.loc[i, 'title'] + ', total={}'.format(cannot_download))
+                test_database.loc[i, 'downloaded'] = False
+                test_database.loc[i, 'label'] = 'nan'
         else:
-            val_database.loc[i, 'downloaded'] = True
+            test_database.loc[i, 'downloaded'] = True
 
-    val_database.to_csv('../val_database.csv')
+    test_database.to_csv('../test_database.csv')
 
     # Report totals
-    categories_dummy = pd.get_dummies(val_database['label'])
+    categories_dummy = pd.get_dummies(test_database['label'])
     for col  in categories_dummy.columns:
         print(col, categories_dummy[col].sum())
 
-    return val_database
+    return test_database
 
-def get_label_validation_data(description, category_dict):
+def get_labels_on_test_data(description, category_dict):
     ''' Identify label from the image description. Used for unlabeled validation dataset. Use spacy natural language processor.
     :param description: item description as a string
     :param category_dict: dict of labels and keywords
@@ -178,10 +174,10 @@ def acquire_training_data():
 if __name__ == '__main__':
 
     # Acquiring data, comment out after use
-    if os.path.exists('../val_database.csv'):
-        val_database = pd.read_csv('../val_database.csv')
+    if os.path.exists('../test_database.csv'):
+        test_database = pd.read_csv('../test_database.csv')
     else:
-        val_database = acquire_validation_data()
+        test_database = acquire_test_data()
 
     # Acquire the training data # Commented out after run
     # train_dir, test_dir = acquire_training_data()
@@ -195,41 +191,86 @@ if __name__ == '__main__':
     test_dir = '../data/test_data/'
     val_dir = '../data/val_data/'
 
+    print('Loading train data...')
     train_generator = train_datagen.flow_from_directory(
             train_dir,
+            color_mode='rgb',
             target_size=(200, 200),
             batch_size=20,
-            class_mode=None
+            class_mode='categorical'
             )
 
+    print('Loading test data...')
     test_generator = train_datagen.flow_from_directory(
             test_dir,
+            color_mode='rgb',
             target_size=(200, 200),
             batch_size=20,
-            class_mode=None
+            class_mode='categorical'
             )
 
-    val_generator = train_datagen.flow_from_directory(
+    print('Loading validation data...')
+    validation_generator = train_datagen.flow_from_directory(
             val_dir,
+            color_mode='rgb',
             target_size=(200, 200),
-            batch_size=20,
-            class_mode=None
+            batch_size=1,
+            class_mode='categorical'
             )
+
+    # Define the CNN
     #
-    # # Define the CNN
-    #
-    # model = models.Sequential()
-    # model.add(layers.Conv2D(32, (3, 3), activation='relu',
-    #                         input_shape=(150, 150, 3)))
-    # model.add(layers.MaxPooling2D((2, 2)))
-    # model.add(layers.Conv2D(64, (3, 3), activation='relu'))
-    # model.add(layers.MaxPooling2D((2, 2)))
-    # model.add(layers.Conv2D(128, (3, 3), activation='relu'))
-    # model.add(layers.MaxPooling2D((2, 2)))
-    # model.add(layers.Conv2D(128, (3, 3), activation='relu'))
-    # model.add(layers.MaxPooling2D((2, 2)))
-    # model.add(layers.Flatten())
-    # model.add(layers.Dense(512, activation='relu'))
-    # model.add(layers.Dense(11, activation='sigmoid'))
+    model = models.Sequential()
+    model.add(layers.Conv2D(32, (3, 3), activation='relu',
+                            input_shape=(200, 200, 3)))
+    model.add(layers.MaxPooling2D((2, 2)))
+    model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D((2, 2)))
+    # model.add(layers.Dropout(0.5))
+    model.add(layers.Conv2D(128, (3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D((2, 2)))
+    # model.add(layers.Dropout(0.5))
+    model.add(layers.Conv2D(128, (3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D((2, 2)))
+    # model.add(layers.Dropout(0.5))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(512, activation='relu'))
+    model.add(layers.Dense(10, activation='softmax'))
+
+    model.summary()
+
+    model.compile(loss='categorical_crossentropy',
+                  optimizer=optimizers.RMSprop(lr=1e-4),
+                  metrics=['acc'])
+
+    history = model.fit_generator(
+          train_generator,
+          steps_per_epoch=100,
+          epochs=30,
+          validation_data=validation_generator,
+          validation_steps=50)
+
+    model.save('fashion_classifier_1.h5')
+
+    acc = history.history['acc']
+    val_acc = history.history['val_acc']
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+
+    epochs = range(len(acc))
+
+    plt.plot(epochs, acc, 'bo', label='Training acc')
+    plt.plot(epochs, val_acc, 'b', label='Validation acc')
+    plt.title('Training and validation accuracy')
+    plt.legend()
+    plt.savefig('accuracy.png')
+
+    plt.figure()
 
 
+    plt.plot(epochs, loss, 'bo', label='Training loss')
+    plt.plot(epochs, val_loss, 'b', label='Validation loss')
+    plt.title('Training and validation loss')
+    plt.legend()
+    plt.savefig('loss.png')
+    plt.show()
