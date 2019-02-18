@@ -15,6 +15,8 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras import layers
 from keras import models
 from keras import optimizers
+from imutils import build_montages
+import cv2
 
 # Issues with OpenMP force me to set this variable in order to run on my Mac OsX machine
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -171,6 +173,92 @@ def acquire_training_data():
 
     return train_dir, test_dir
 
+def return_generators(train_dir, test_dir, val_dir):
+    '''
+    Return generators for Keras modeling training with git_generator
+    :param train_dir: directory for training data
+    :param test_dir: directory for test data
+    :param val_dir: directory for validation data
+    :return: train_generator, test_generator, validation_generator
+    '''
+
+    # process the image data
+    train_datagen = ImageDataGenerator(rescale=1 / 255)
+    test_datagen = ImageDataGenerator(rescale=1 / 255)
+    val_datagen = ImageDataGenerator(rescale=1 / 255)
+
+    print('Loading train data...')
+    train_generator = train_datagen.flow_from_directory(
+        train_dir,
+        color_mode='rgb',
+        target_size=(200, 200),
+        batch_size=20,
+        class_mode='categorical'
+    )
+
+    print('Loading test data...')
+    test_generator = test_datagen.flow_from_directory(
+        test_dir,
+        color_mode='rgb',
+        target_size=(200, 200),
+        batch_size=20,
+        class_mode='categorical'
+    )
+
+    print('Loading validation data...')
+    validation_generator = val_datagen.flow_from_directory(
+        val_dir,
+        color_mode='rgb',
+        target_size=(200, 200),
+        batch_size=1,
+        class_mode='categorical'
+    )
+
+    return train_generator, test_generator, validation_generator
+
+def create_plots(model, accuracy_fig, loss_fig):
+    # Create plots
+    acc = history.history['acc']
+    val_acc = history.history['val_acc']
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+
+    epochs = range(len(acc))
+
+    plt.plot(epochs, acc, 'bo', label='Training acc')
+    plt.plot(epochs, val_acc, 'b', label='Validation acc')
+    plt.title('Training and validation accuracy')
+    plt.legend()
+    plt.savefig('../data/' + accuracy_fig)
+
+    plt.figure()
+
+    plt.plot(epochs, loss, 'bo', label='Training loss')
+    plt.plot(epochs, val_loss, 'b', label='Validation loss')
+    plt.title('Training and validation loss')
+    plt.legend()
+    plt.savefig('../data/' + loss_fig)
+    plt.show()
+
+def create_montage(data_generator, sample_count, batch_size = 20):
+    images = []
+    i=0
+    for inputs_batch, labels_batch in data_generator:
+        for panel in range(0, inputs_batch.shape[0]):
+            image = inputs_batch[panel,:,:,:]*256 #cv2.resize((inputs_batch[panel,:,:,:]*256), (200, 200), interpolation=cv2.INTER_LINEAR)
+            images.append(image)
+        i += 1
+        if i * batch_size >= sample_count:
+            # Note that since generators yield data indefinitely in a loop,
+            # we must `break` after every image has been seen once.
+            break
+
+    montage = build_montages(images, (200, 200), (30, sample_count//30))[0]
+    plt.imshow(montage)
+    plt.gca().axes.get_xaxis().set_visible(False)
+    plt.gca().axes.get_yaxis().set_visible(False)
+    plt.savefig('../data/montage.png')
+
 if __name__ == '__main__':
 
     # Acquiring data, comment out after use
@@ -182,42 +270,18 @@ if __name__ == '__main__':
     # Acquire the training data # Commented out after run
     # train_dir, test_dir = acquire_training_data()
 
-    # process the image data
-    train_datagen = ImageDataGenerator(rescale=1/255)
-    test_datagen = ImageDataGenerator(rescale=1/255)
-    val_datagen = ImageDataGenerator(rescale=1/255)
-
+    # Define data directories
     train_dir = '../data/train_data/'
     test_dir = '../data/test_data/'
     val_dir = '../data/val_data/'
 
-    print('Loading train data...')
-    train_generator = train_datagen.flow_from_directory(
-            train_dir,
-            color_mode='rgb',
-            target_size=(200, 200),
-            batch_size=20,
-            class_mode='categorical'
-            )
+    train_generator, test_generator, validation_generator = return_generators(train_dir, test_dir, val_dir)
 
-    print('Loading test data...')
-    test_generator = train_datagen.flow_from_directory(
-            test_dir,
-            color_mode='rgb',
-            target_size=(200, 200),
-            batch_size=20,
-            class_mode='categorical'
-            )
 
-    print('Loading validation data...')
-    validation_generator = train_datagen.flow_from_directory(
-            val_dir,
-            color_mode='rgb',
-            target_size=(200, 200),
-            batch_size=1,
-            class_mode='categorical'
-            )
+    # Build montage of training_data
+    create_montage(test_generator, sample_count = 720, batch_size=20)
 
+    # If not started before
     if not os.path.exists('fashion_classifier_1.h5'):
         # Define the CNN
         #
@@ -249,67 +313,29 @@ if __name__ == '__main__':
                       steps_per_epoch=100,
                       epochs=50,
                       validation_data=validation_generator,
-                      validation_steps=50)
+                      validation_steps=763//20) # sample only once through
 
         model.save('fashion_classifier_1.h5')
 
-        # Create plots
-        acc = history.history['acc']
-        val_acc = history.history['val_acc']
-        loss = history.history['loss']
-        val_loss = history.history['val_loss']
+        create_plots(model, 'accuracy.png', 'loss.png')
 
-        epochs = range(len(acc))
-
-        plt.plot(epochs, acc, 'bo', label='Training acc')
-        plt.plot(epochs, val_acc, 'b', label='Validation acc')
-        plt.title('Training and validation accuracy')
-        plt.legend()
-        plt.savefig('../data/accuracy.png')
-
-        plt.figure()
-
-        plt.plot(epochs, loss, 'bo', label='Training loss')
-        plt.plot(epochs, val_loss, 'b', label='Validation loss')
-        plt.title('Training and validation loss')
-        plt.legend()
-        plt.savefig('../data/loss.png')
-        plt.show()
-
-    else:
-
-        model = models.load_model('fashion_classifier_1.h5')
-        history = model.fit_generator(
-              train_generator,
-              steps_per_epoch=100,
-              epochs=20,
-              validation_data=validation_generator,
-              validation_steps=50)
-
-        model.save('fashion_classifier_2.h5')
-
-        # Create plots
-        acc = history.history['acc']
-        val_acc = history.history['val_acc']
-        loss = history.history['loss']
-        val_loss = history.history['val_loss']
-
-        epochs = range(len(acc))
-
-        plt.plot(epochs, acc, 'bo', label='Training acc')
-        plt.plot(epochs, val_acc, 'b', label='Validation acc')
-        plt.title('Training and validation accuracy')
-        plt.legend()
-        plt.savefig('../data/accuracy.png')
-
-        plt.figure()
-
-        plt.plot(epochs, loss, 'bo', label='Training loss')
-        plt.plot(epochs, val_loss, 'b', label='Validation loss')
-        plt.title('Training and validation loss')
-        plt.legend()
-        plt.savefig('../data/loss.png')
-        plt.show()
-
-        test_loss, test_acc = model.evaluate_generator(test_generator, steps = 50)
+        test_loss, test_acc = model.evaluate_generator(test_generator, steps = 633//25)
         print('test acc:', test_acc)
+
+    # # Restart from saved checkpoint
+    # else:
+    #
+    #     model = models.load_model('fashion_classifier_1.h5')
+    #     history = model.fit_generator(
+    #           train_generator,
+    #           steps_per_epoch=100,
+    #           epochs=20,
+    #           validation_data=validation_generator,
+    #           validation_steps=763//20) # sample only once through
+    #
+    #     model.save('fashion_classifier_2.h5')
+    #
+    #     create_plots(model, 'accuracy_2.png', 'loss_2.png')
+    #
+    #     test_loss, test_acc = model.evaluate_generator(test_generator, steps = 50)
+    #     print('test acc:', test_acc)

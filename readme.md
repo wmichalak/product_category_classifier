@@ -3,12 +3,12 @@
 The purpose of this project is to classify the category of clothing shown in an image as:
 Dresses, Tops, Jeans, Skirts, Rompers, Shoes, Bags, Jewelry, Swimwear, Intimates, Others.
 
-For this project I will used a multilabel CNN classifier based in the Keras API.
+For this project I will used a multilabel CNN classifier using the Keras API.
 
 The project consists of 8 parts:
 1. Acquiring the test data and assigning labels based on the description.  
 2. Acquire a train / validation dataset to learn coefficients of the CNN.
-3. Define image prepreprocessing
+3. Define image pre-preprocessing
 4. Define the CNN structure
 5. Train the CNN
 6. Assessing performance of the model
@@ -16,7 +16,7 @@ The project consists of 8 parts:
 8. Perform final validation error assessment
 
 #### 1: Acquiring the test data and assigning labels based on the description.  ####
-I used the fashion items pre-defined in product_data.json as the test set. I choose to use the given dataset as a test
+I used the fashion items given in product_data.json as the test set. I choose to use the given dataset as a test
  dataset for two reasons: 
  
  1. the final test of the model is based on how well the model performs on the provided set and 
@@ -92,9 +92,9 @@ one it checks. This is not something I am choosing to spend time on. Rather I am
 cover pants.
 * some descriptions were just too vague and manual labelling was required. For example, the description:
 _Shop On Top at Urban Outfitters. We have all the latest styles and fashion trends you're looking for right here._
-* There were also images in this set that were not fashion items, they images were assigned to 
-the other category.
-* Some images could not be downloaded and thus were left out of the test set and are designated by the nan category below.
+* There were also images in this set that were not fashion items; these images were assigned to 
+the __other__ category.
+* Some images could not be downloaded and thus were left out of the test set and are designated by the __nan__ category below.
 * A summary report of the filename, assigned label, whether the download was complete, the description and url were saved in a file called
 val_database.csv (which is in the repository).
 
@@ -114,6 +114,15 @@ In summary, out of 1000 records, the samples spread across the categories:
 | skirt     | 11  |
 | swimwear  | 82  |
 | top       | 283 |
+
+All of the images are shown in this montage
+
+![Figure 0: Test data](https://github.com/wmichalak/product_category_classifier/raw/master/data/montage.png)
+Figure 4: Training and validation loss
+
+While the project goal was to classify all 1000 samples, I clearly cannot given that 213 files could not be downloaded
+and 166 of the images did not fall into one of the given categories. If I were building an extensive model I would not be 
+limiting myself to these 10 categories and this problem would go away. 
 
 #### 2: Acquiring the training and validation data and assigning labels based on the search criteria.  ####
 To train the model, I decided not to use the provided set because  it is relatively small, and the classes are imbalanced. Instead,
@@ -280,8 +289,8 @@ distributed.
 #### 5. Train the CNN ####
 
 To train the model, I use the Keras `fit_generator` method since I am using the `ImageGenerator` function. I will take 100 
-steps per epoch, train over 30 epochs, and test the validation data for 50 steps. Since I am using a generator, I could
-conceivable cycle over the images endlessly. Instead, I specify to stop at 50 steps.
+steps per epoch, train over 30 epochs, and test the validation data in steps =  the number of images divided by the batchsise.
+ Since I am using a generator, I couldconceivable cycle over the images endlessly. Instead, I specify to stop at 763//25 = 30 steps.
 
 ```
 history = model.fit_generator(
@@ -289,21 +298,22 @@ history = model.fit_generator(
       steps_per_epoch=100,
       epochs=30,
       validation_data=validation_generator,
-      validation_steps=50)
+      validation_steps=763/50)
       
 ```
 
 This model took about 40 minutes to train on my Macbook Pro.
 
-#### 6. Assessing performance of the model on the training and validation set####
+#### 6. Assessing performance of the model on the training and validation set ####
 
 A plot of the training and validation accuracy is shown in Figure 1. A plot of the training and
 validation loss is shown in Figure 2.
 
 
-!(Figure 1: Training and validation accuracy)[https://github.com/wmichalak/product_category_classifier/raw/master/data/1-accuracy.png]
+![Figure 1: Training and validation accuracy](https://github.com/wmichalak/product_category_classifier/raw/master/data/1-accuracy.png)
+Figure 1: Training and validation accuracy
 
-[[https://github.com/wmichalak/product_category_classifier/raw/master/data/1-loss.png|alt=loss_1]]
+![Figure 2: Training and validation loss](https://github.com/wmichalak/product_category_classifier/raw/master/data/1-loss.png)
 Figure 2: Training and validation loss
 
 On this first attempt, I already achieve 97% accuracy on the validation set. It does not appear that I am overfitting yet and 
@@ -313,13 +323,13 @@ I don't appear to have achieved a peak in the performance, o, I continued traini
 A small, but meaningful gain in accuracy, is achieved by continuing 20 more epochs; we now have a validation accuracy of 1 and
 a training accuracy of 99.05%.
 
-[[https://github.com/wmichalak/product_category_classifier/raw/master/data/2-accuracy.png|alt=accuracy_1]]
+![Figure 3: Training and validation accuracy](https://github.com/wmichalak/product_category_classifier/raw/master/data/2-accuracy.png)
 Figure 3: Training and validation accuracy
 
-[[https://github.com/wmichalak/product_category_classifier/raw/master/data/2-loss.png|alt=loss_1]]
+![Figure 4: Training and validation loss](https://github.com/wmichalak/product_category_classifier/raw/master/data/2-loss.png)
 Figure 4: Training and validation loss
 
-### 7. Assessing the performance of the model on the test set ####
+#### 7. Assessing the performance of the model on the test set ####
 
 Now on to the test set....
 
@@ -331,3 +341,58 @@ We can assess the performance of the test set using the Keras evaluate_generator
 ```
 
 To my dismay, I receive an accuracy on the test set of 41.6%. I have grossly overfit to the training data. 
+
+
+#### 8. Improving using a convolutional base: VGG16 #### 
+
+If I were to continue, my next step would be to use a pre-trained convolutional base, for example VGG16, which was trained
+on ImageNet. I would then hold the base constant and train the last layer.
+
+```markdown
+Layer (type)                 Output Shape              Param #   
+=================================================================
+input_1 (InputLayer)         (None, 200, 200, 3)       0         
+_________________________________________________________________
+block1_conv1 (Conv2D)        (None, 200, 200, 64)      1792      
+_________________________________________________________________
+block1_conv2 (Conv2D)        (None, 200, 200, 64)      36928     
+_________________________________________________________________
+block1_pool (MaxPooling2D)   (None, 100, 100, 64)      0         
+_________________________________________________________________
+block2_conv1 (Conv2D)        (None, 100, 100, 128)     73856     
+_________________________________________________________________
+block2_conv2 (Conv2D)        (None, 100, 100, 128)     147584    
+_________________________________________________________________
+block2_pool (MaxPooling2D)   (None, 50, 50, 128)       0         
+_________________________________________________________________
+block3_conv1 (Conv2D)        (None, 50, 50, 256)       295168    
+_________________________________________________________________
+block3_conv2 (Conv2D)        (None, 50, 50, 256)       590080    
+_________________________________________________________________
+block3_conv3 (Conv2D)        (None, 50, 50, 256)       590080    
+_________________________________________________________________
+block3_pool (MaxPooling2D)   (None, 25, 25, 256)       0         
+_________________________________________________________________
+block4_conv1 (Conv2D)        (None, 25, 25, 512)       1180160   
+_________________________________________________________________
+block4_conv2 (Conv2D)        (None, 25, 25, 512)       2359808   
+_________________________________________________________________
+block4_conv3 (Conv2D)        (None, 25, 25, 512)       2359808   
+_________________________________________________________________
+block4_pool (MaxPooling2D)   (None, 12, 12, 512)       0         
+_________________________________________________________________
+block5_conv1 (Conv2D)        (None, 12, 12, 512)       2359808   
+_________________________________________________________________
+block5_conv2 (Conv2D)        (None, 12, 12, 512)       2359808   
+_________________________________________________________________
+block5_conv3 (Conv2D)        (None, 12, 12, 512)       2359808   
+_________________________________________________________________
+block5_pool (MaxPooling2D)   (None, 6, 6, 512)         0         
+=================================================================
+Total params: 14,714,688
+Trainable params: 14,714,688
+Non-trainable params: 0
+```
+
+#### Final Thoughts ####
+
