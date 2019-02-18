@@ -300,10 +300,11 @@ This model took about 40 minutes to train on my Macbook Pro.
 A plot of the training and validation accuracy is shown in Figure 1. A plot of the training and
 validation loss is shown in Figure 2.
 
-[[https://github.com/wmichalak/product_category_classifier/blob/master/data/1-accuracy.png|alt=accuracy_1]]
+
+[[https://github.com/wmichalak/product_category_classifier/raw/master/data/1-accuracy.png|alt=accuracy_1]]
 Figure 1: Training and validation accuracy
 
-[[https://github.com/wmichalak/product_category_classifier/blob/master/data/1-loss.png|alt=loss_1]]
+[[https://github.com/wmichalak/product_category_classifier/raw/master/data/1-loss.png|alt=loss_1]]
 Figure 2: Training and validation loss
 
 On this first attempt, I already achieve 97% accuracy on the validation set. It does not appear that I am overfitting yet and 
@@ -313,10 +314,10 @@ I don't appear to have achieved a peak in the performance, o, I continued traini
 A small, but meaningful gain in accuracy, is achieved by continuing 20 more epochs; we now have a validation accuracy of 1 and
 a training accuracy of 99.05%.
 
-[[https://github.com/wmichalak/product_category_classifier/blob/master/data/2-accuracy.png|alt=accuracy_1]]
+[[https://github.com/wmichalak/product_category_classifier/raw/master/data/2-accuracy.png|alt=accuracy_1]]
 Figure 3: Training and validation accuracy
 
-[[https://github.com/wmichalak/product_category_classifier/blob/master/data/2-loss.png|alt=loss_1]]
+[[https://github.com/wmichalak/product_category_classifier/raw/master/data/2-loss.png|alt=loss_1]]
 Figure 4: Training and validation loss
 
 ### 7. Assessing the performance of the model on the test set ####
