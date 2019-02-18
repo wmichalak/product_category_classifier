@@ -301,8 +301,7 @@ A plot of the training and validation accuracy is shown in Figure 1. A plot of t
 validation loss is shown in Figure 2.
 
 
-[[https://github.com/wmichalak/product_category_classifier/raw/master/data/1-accuracy.png|alt=accuracy_1]]
-Figure 1: Training and validation accuracy
+[/data/1-accuracy.png](Figure 1: Training and validation accuracy)
 
 [[https://github.com/wmichalak/product_category_classifier/raw/master/data/1-loss.png|alt=loss_1]]
 Figure 2: Training and validation loss
