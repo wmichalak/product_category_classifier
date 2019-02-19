@@ -219,7 +219,7 @@ Found 763 images belonging to 10 classes.
 #### 4. Define the CNN structure ####
 
 As an initial attempt, I used a common CNN structure with 3 layers of 2D convolutions with relu activations 
-and pooling, followed by a flattening to a dense layer and a softmax activation function for the final activation. 
+and pooling, followed by a flattening to a dense layer and a sigmoud activation function for the final activation. 
 
 ```
 model = models.Sequential()
@@ -234,7 +234,7 @@ model.add(layers.Conv2D(128, (3, 3), activation='relu'))
 model.add(layers.MaxPooling2D((2, 2)))
 model.add(layers.Flatten())
 model.add(layers.Dense(512, activation='relu'))
-model.add(layers.Dense(10, activation='softmax'))
+model.add(layers.Dense(10, activation='sigmoud'))
 ```
 
 We can take look at how the dimensions of the feature maps change with each layer:
@@ -276,13 +276,13 @@ The current model has a total of 6,800,074 parameters.
 Lastly, I define the model loss, optimizer and metric using the Keras one-liner:
 
 ```
-model.compile(loss='categorical_crossentropy',
+model.compile(loss='binary_crossentropy',
               optimizer=optimizers.RMSprop(lr=1e-4),
               metrics=['acc'])
 
 ```
 
-I use a categorical_crossentropy to measure the distance between two probability distributions: the probability distribution
+I use a binary_crossentropy to measure the distance between two probability distributions: the probability distribution
 output by the network and the true distribution of the labels. I use accuracy as my metric since the classes are fairly evenly
 distributed.
 
@@ -340,7 +340,7 @@ We can assess the performance of the test set using the Keras evaluate_generator
         print('test acc:', test_acc)
 ```
 
-To my dismay, I receive an accuracy on the test set of 41.6%. I have grossly overfit to the training data. 
+I receive an accuracy on the test set of 89.9%. This is ok for a first pass, but not great. 
 
 
 #### 8. Improving using a convolutional base: VGG16 #### 

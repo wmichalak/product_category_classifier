@@ -216,7 +216,7 @@ def return_generators(train_dir, test_dir, val_dir):
 
     return train_generator, test_generator, validation_generator
 
-def create_plots(model, accuracy_fig, loss_fig):
+def create_plots(model, history, accuracy_fig, loss_fig):
     # Create plots
     acc = history.history['acc']
     val_acc = history.history['val_acc']
@@ -257,7 +257,7 @@ def create_montage(data_generator, sample_count, batch_size = 20):
     plt.imshow(montage)
     plt.gca().axes.get_xaxis().set_visible(False)
     plt.gca().axes.get_yaxis().set_visible(False)
-    plt.savefig('../data/montage.png')
+    plt.savefig('../data/montage.png', dpi=600)
 
 if __name__ == '__main__':
 
@@ -279,7 +279,7 @@ if __name__ == '__main__':
 
 
     # Build montage of training_data
-    create_montage(test_generator, sample_count = 720, batch_size=20)
+    # create_montage(test_generator, sample_count = 720, batch_size=20)
 
     # If not started before
     if not os.path.exists('fashion_classifier_1.h5'):
@@ -300,11 +300,11 @@ if __name__ == '__main__':
         model.add(layers.Dropout(0.5))
         model.add(layers.Flatten())
         model.add(layers.Dense(512, activation='relu'))
-        model.add(layers.Dense(10, activation='softmax'))
+        model.add(layers.Dense(10, activation='sigmoid'))
 
         model.summary()
 
-        model.compile(loss='categorical_crossentropy',
+        model.compile(loss='binary_crossentropy',
                       optimizer=optimizers.RMSprop(lr=1e-4),
                       metrics=['acc'])
 
@@ -317,25 +317,23 @@ if __name__ == '__main__':
 
         model.save('fashion_classifier_1.h5')
 
-        create_plots(model, 'accuracy.png', 'loss.png')
+        create_plots(model, history, 'accuracy.png', 'loss.png')
 
         test_loss, test_acc = model.evaluate_generator(test_generator, steps = 633//25)
         print('test acc:', test_acc)
 
-    # # Restart from saved checkpoint
-    # else:
-    #
-    #     model = models.load_model('fashion_classifier_1.h5')
-    #     history = model.fit_generator(
-    #           train_generator,
-    #           steps_per_epoch=100,
-    #           epochs=20,
-    #           validation_data=validation_generator,
-    #           validation_steps=763//20) # sample only once through
-    #
-    #     model.save('fashion_classifier_2.h5')
-    #
-    #     create_plots(model, 'accuracy_2.png', 'loss_2.png')
-    #
-    #     test_loss, test_acc = model.evaluate_generator(test_generator, steps = 50)
-    #     print('test acc:', test_acc)
+    # Restart from saved checkpoint
+    else:
+
+        model = models.load_model('fashion_classifier_1.h5')
+        # history = model.fit_generator(
+        #       train_generator,
+        #       steps_per_epoch=100,
+        #       epochs=20,
+        #       validation_data=validation_generator,
+        #       validation_steps=763//20) # sample only once through
+
+        # create_plots(model, history, 'accuracy_2.png', 'loss_2.png')
+
+        test_loss, test_acc = model.evaluate_generator(test_generator, steps = 633//25)
+        print('test acc:', test_acc)
