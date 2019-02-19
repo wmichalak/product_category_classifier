@@ -210,7 +210,7 @@ def return_generators(train_dir, test_dir, val_dir):
         val_dir,
         color_mode='rgb',
         target_size=(200, 200),
-        batch_size=1,
+        batch_size=20,
         class_mode='categorical'
     )
 
@@ -300,7 +300,7 @@ if __name__ == '__main__':
         model.add(layers.Dropout(0.5))
         model.add(layers.Flatten())
         model.add(layers.Dense(512, activation='relu'))
-        model.add(layers.Dense(10, activation='sigmoid'))
+        model.add(layers.Dense(10, activation='softmax'))
 
         model.summary()
 
@@ -337,3 +337,6 @@ if __name__ == '__main__':
 
         test_loss, test_acc = model.evaluate_generator(test_generator, steps = 633//25)
         print('test acc:', test_acc)
+
+        # Get set of prediction results from test to show performance
+        test_subset_pred = model.predict_generator(test_generator,1)
