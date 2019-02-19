@@ -118,7 +118,7 @@ In summary, out of 1000 records, the samples spread across the categories:
 All of the images are shown in this montage
 
 ![Figure 0: Test data](https://github.com/wmichalak/product_category_classifier/raw/master/data/montage.png)
-Figure 4: Training and validation loss
+Figure 0: Montage of test images
 
 While the project goal was to classify all 1000 samples, I clearly cannot given that 213 files could not be downloaded
 and 166 of the images did not fall into one of the given categories. If I were building an extensive model I would not be 
@@ -346,7 +346,7 @@ To my dismay, I receive an accuracy on the test set of 41.6%. I have grossly ove
 #### 8. Improving using a convolutional base: VGG16 #### 
 
 If I were to continue, my next step would be to use a pre-trained convolutional base, for example VGG16, which was trained
-on ImageNet. I would then hold the base constant and train the last layer.
+on ImageNet. I would then hold the base constant and train the last layer. The VGG16 layer convolutional layer is as follows:
 
 ```markdown
 Layer (type)                 Output Shape              Param #   
@@ -396,3 +396,12 @@ Non-trainable params: 0
 
 #### Final Thoughts ####
 
+Ultimately, the model I created does not perform particularly well on the test dataset. Next, I would dive deeper into the cases that 
+were incorrectly predicted - there is an underlying issue that I need to work through: perhaps the sample space in the training dataset
+does not have similar enough images, the poses of the models in the Jcrew data are different than the people standing straight and facing front, or
+(this is my primary guess) the the models in the test set were wearing multiple pieces of clothing. The model is likely seeing both
+jeans and shirts and picking one or the other.  After looking into these issues, I would next try a convolutional base that was built on a broader data 
+as mentioned in the previous section.
+
+In the future, I would also look into how to implement a mechanism to assign to the __other__ category if the probability 
+for the other categories are below a threshold. 
