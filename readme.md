@@ -11,9 +11,10 @@ The project consists of 8 parts:
 3. Define image pre-preprocessing
 4. Define the CNN structure
 5. Train the CNN
-6. Assessing performance of the model
-7. Perform hyperparameter tuning
-8. Perform final validation error assessment
+6. Assessing performance of the model (train and validation)
+7. Perform final error assessment on test set
+8. Improving using a convolutional base: VGG16
+9. Final thoughts
 
 #### 1: Acquiring the test data and assigning labels based on the description.  ####
 I used the fashion items given in product_data.json as the test set. I choose to use the given dataset as a test
@@ -394,7 +395,7 @@ Trainable params: 14,714,688
 Non-trainable params: 0
 ```
 
-#### Final Thoughts ####
+#### 9. Final Thoughts ####
 
 Ultimately, the model I created does not perform particularly well on the test dataset. Next, I would dive deeper into the cases that 
 were incorrectly predicted - there is an underlying issue that I need to work through: perhaps the sample space in the training dataset
