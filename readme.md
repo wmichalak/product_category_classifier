@@ -220,7 +220,7 @@ Found 763 images belonging to 10 classes.
 #### 4. Define the CNN structure ####
 
 As an initial attempt, I used a common CNN structure with 3 layers of 2D convolutions with relu activations 
-and pooling, followed by a flattening to a dense layer and a sigmoud activation function for the final activation. 
+and pooling, followed by a flattening to a dense layer and a softmax activation function for the final activation. 
 
 ```
 model = models.Sequential()
@@ -235,7 +235,7 @@ model.add(layers.Conv2D(128, (3, 3), activation='relu'))
 model.add(layers.MaxPooling2D((2, 2)))
 model.add(layers.Flatten())
 model.add(layers.Dense(512, activation='relu'))
-model.add(layers.Dense(10, activation='sigmoud'))
+model.add(layers.Dense(10, activation='softmax'))
 ```
 
 We can take look at how the dimensions of the feature maps change with each layer:
